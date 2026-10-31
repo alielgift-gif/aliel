@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Aliel Gift — Zərif Bujuteriya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#FFF5F6;--sakura:#E5989B;--plum:#B56576;--plum-dark:#8E4A5A;--gold:#C9A96E;--gold-light:#E8D5A3}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2D2D2D;min-height:100vh}
+.font-display{font-family:'Playfair Display',serif}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f1f1f1}
+::-webkit-scrollbar-thumb{background:var(--sakura);border-radius:3px}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 20px;border-radius:10px;font-weight:500;font-size:14px;transition:all .2s;border:none;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--plum);color:#fff}
+.btn-primary:hover{background:var(--plum-dark)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-outline{background:transparent;border:1.5px solid var(--plum);color:var(--plum)}
+.btn-outline:hover{background:var(--plum);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-gold:hover{background:#b8944e}
+.btn-ghost{background:transparent;color:#666;border:none}
+.btn-ghost:hover{background:#f5f5f5}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-danger:hover{background:#c82333}
+.btn-sm{padding:5px 12px;font-size:12px}
+/* Cart sidebar */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay.active{opacity:1;pointer-events:auto}
+.cart-sidebar{position:fixed;top:0;right:-420px;width:420px;max-width:100vw;height:100vh;background:#fff;z-index:50;box-shadow:-4px 0 30px rgba(0,0,0,.1);transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.cart-sidebar.open{right:0}
+/* Admin overlay */
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;opacity:0;pointer-events:none;transition:opacity .3s}
+.admin-overlay.active{opacity:1;pointer-events:auto}
+.admin-panel{position:fixed;inset:20px;background:#fff;z-index:70;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:scale(.95);transition:all .3s cubic-bezier(.4,0,.2,1)}
+.admin-panel.active{opacity:1;pointer-events:auto;transform:scale(1)}
+/* Product card */
+.product-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(181,101,118,.08);transition:all .3s;cursor:default}
+.product-card:hover{box-shadow:0 8px 30px rgba(181,101,118,.15);transform:translateY(-2px)}
+.product-card .img-wrap{height:220px;background:#fafafa;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.product-card .img-wrap img{width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .5s}
+.product-card:hover .img-wrap img{transform:scale(1.05)}
+/* Category tab */
+.cat-tab{padding:6px 18px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;background:#fff;border:1.5px solid #eee;color:#666}
+.cat-tab.active{background:var(--plum);color:#fff;border-color:var(--plum)}
+.cat-tab:hover:not(.active){border-color:var(--sakura);color:var(--plum)}
+/* Stock badge */
+.stock-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.stock-badge.inStock{background:#e8f5e9;color:#2e7d32}
+.stock-badge.outOfStock{background:#fce4ec;color:#c62828}
+/* Toast */
+.toast-container{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 20px;border-radius:12px;color:#fff;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;min-width:280px;max-width:360px;pointer-events:auto}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.info{background:var(--plum)}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(110%);opacity:0}}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:30px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:modalIn .25s ease}
+@keyframes modalIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+/* Admin tabs */
+.admin-tab{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;color:#666;background:transparent;border:none;font-family:inherit;display:flex;align-items:center;gap:6px}
+.admin-tab.active{background:var(--plum);color:#fff}
+.admin-tab:hover:not(.active){background:#f5f5f5;color:var(--plum)}
+.admin-tab-content{display:none}
+/* Search */
+.search-input{width:100%;padding:10px 16px 10px 40px;border:1.5px solid #eee;border-radius:12px;font-size:14px;outline:none;transition:border .2s;background:#fff;font-family:inherit}
+.search-input:focus{border-color:var(--sakura)}
+/* Form */
+.form-input{width:100%;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border .2s;font-family:inherit}
+.form-input:focus{border-color:var(--sakura);box-shadow:0 0 0 3px rgba(229,152,155,.15)}
+.form-select{width:100%;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border .2s;background:#fff;cursor:pointer;font-family:inherit}
+.form-select:focus{border-color:var(--sakura)}
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid #f0f0f0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#fafafa;padding:10px 12px;text-align:left;font-weight:600;color:#555;border-bottom:1px solid #eee;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+tr:hover td{background:#fafafa}
+/* Product grid */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+/* File input hidden */
+.file-input-hidden{display:none}
+/* Anti-gravity */
+.ag-container{position:relative;min-height:80vh;width:100%}
+.ag-container .product-card{position:absolute;width:260px;will-change:transform}
+/* Mobile */
+@media(max-width:640px){
+  .product-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+  .product-card .img-wrap{height:150px!important}
+  .product-card{border-radius:12px!important}
+  .admin-panel{inset:0;border-radius:0}
+  .modal-box{padding:20px}
+}
+/* Print */
+@media print{
+  body{background:#fff!important}
+  .no-print,.cart-sidebar,.admin-overlay,.admin-panel,.cart-overlay,.toast-container,#instaBtn,.add-to-cart-btn,.cat-tab,.search-wrap,.header-actions{display:none!important}
+  .product-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:20px!important;padding:0!important}
+  .product-card{break-inside:avoid;box-shadow:none!important;border:1px solid #ddd!important}
+  header{border:none!important;padding:10px 0!important}
+  .img-wrap{height:180px!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="no-print" style="position:sticky;top:0;z-index:30;background:rgba(255,245,246,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(229,152,155,.2)">
+  <div style="max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <!-- Logo — double-click to open admin -->
+    <div id="logoWrap" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none" title="Aliel Gift">
+      <div style="width:36px;height:36px;background:var(--plum);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;font-family:'Playfair Display',serif;flex-shrink:0">A</div>
+      <div>
+        <div class="font-display" style="font-size:18px;font-weight:700;color:var(--plum);line-height:1.2">Aliel Gift</div>
+        <div style="font-size:10px;color:#999;letter-spacing:1px;text-transform:uppercase">Zərif Bujuteriya</div>
+      </div>
+    </div>
+    <!-- Search -->
+    <div class="search-wrap" style="flex:1;min-width:160px;max-width:400px;position:relative">
+      <i data-lucide="search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#aaa;pointer-events:none"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="Məhsul axtar..." oninput="renderCatalog()">
+    </div>
+    <!-- Category tabs -->
+    <div id="catTabs" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+    <!-- Actions -->
+    <div class="header-actions" style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="Çap et"><i data-lucide="printer" style="width:16px;height:16px"></i></button>
+      <button class="btn btn-primary btn-sm" onclick="toggleCart()" style="position:relative">
+        <i data-lucide="shopping-bag" style="width:18px;height:18px"></i>
+        <span id="cartCount" style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#fff;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main style="max-width:1280px;margin:0 auto;padding:20px">
+  <!-- Hero banner -->
+  <div style="background:linear-gradient(135deg,#FFF5F6 0%,#FCE8EA 100%);border-radius:16px;padding:24px;margin-bottom:24px;text-align:center;border:1px solid rgba(229,152,155,.3)">
+    <h2 class="font-display" style="font-size:24px;color:var(--plum);font-weight:700;margin-bottom:6px">Aliel Gift — Zərif Bujuteriya Kolleksiyası 🌸</h2>
+    <p style="font-size:14px;color:#666;max-width:600px;margin:0 auto">Bəyəndiyiniz məhsulları səbətə əlavə edib birbaşa <strong>Instagram</strong> və ya <strong>WhatsApp</strong> üzərindən sifariş edə bilərsiniz.</p>
+  </div>
+  <!-- Catalog -->
+  <div id="catalogContainer">
+    <div id="productGrid" class="product-grid"></div>
+    <div id="emptyState" style="display:none;text-align:center;padding:60px 20px;color:#999">
+      <i data-lucide="package" style="width:48px;height:48px;margin:0 auto 16px;opacity:.4;display:block"></i>
+      <p style="font-size:16px">Heç bir məhsul tapılmadı</p>
+    </div>
+  </div>
+</main>
+
+<!-- ===== CART OVERLAY ===== -->
+<div class="cart-overlay no-print" id="cartOverlay" onclick="toggleCart()"></div>
+
+<!-- ===== CART SIDEBAR ===== -->
+<div class="cart-sidebar no-print" id="cartSidebar">
+  <div style="padding:20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div>
+      <h3 class="font-display" style="font-size:20px;color:var(--plum)">Səbət</h3>
+      <span id="cartItemCount" style="font-size:13px;color:#999">0 məhsul</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="toggleCart()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+  </div>
+  <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px 20px"></div>
+  <div id="cartFooter" style="padding:16px 20px;border-top:1px solid #f0f0f0;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:14px;color:#666">Cəmi:</span>
+      <span id="cartTotal" class="font-display" style="font-size:24px;font-weight:700;color:var(--plum)">0 AZN</span>
+    </div>
+    <button id="instaBtn" class="btn btn-gold" style="width:100%;padding:10px;margin-bottom:6px" onclick="orderViaInstagram()">
+      <i data-lucide="instagram" style="width:18px;height:18px"></i>
+      Instagram ilə Sifariş Et
+    </button>
+    <button id="waBtn" class="btn btn-primary" style="width:100%;padding:10px;background:#25D366;border:none;color:#fff" onclick="orderViaWhatsApp()">
+      <i data-lucide="message-circle" style="width:18px;height:18px"></i>
+      WhatsApp ilə Sifariş Et
+    </button>
+    <button id="adminSaleBtn" class="btn btn-outline" style="width:100%;padding:10px;margin-top:6px;display:none" onclick="recordSaleFromCart()">
+      <i data-lucide="receipt" style="width:18px;height:18px"></i> Satış kimi qeyd et (admin)
+    </button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" onclick="clearCart()">Səbəti təmizlə</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN LOGIN MODAL ===== -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal-box" style="max-width:380px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:56px;height:56px;background:var(--plum);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <i data-lucide="lock" style="width:28px;height:28px;color:#fff"></i>
+      </div>
+      <h3 class="font-display" style="font-size:22px;color:var(--plum)">Admin girişi</h3>
+      <p style="font-size:13px;color:#999;margin-top:4px">Email və şifrənizi daxil edin</p>
+    </div>
+    <input type="email" id="adminEmailInput" class="form-input" placeholder="Email" autocomplete="username" style="margin-bottom:8px">
+    <input type="password" id="adminPassInput" class="form-input" placeholder="Şifrə" autocomplete="current-password" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')loginAdmin()">
+    <button class="btn btn-primary" id="loginBtn" style="width:100%" onclick="loginAdmin()">Daxil ol</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" onclick="closeAdminLogin()">Ləğv et</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="admin-overlay no-print" id="adminOverlay" onclick="closeAdmin()"></div>
+<div class="admin-panel no-print" id="adminPanel">
+  <div style="padding:16px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:32px;height:32px;background:var(--plum);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;font-family:'Playfair Display',serif">A</div>
+      <h3 class="font-display" style="font-size:20px;color:var(--plum)">Admin Dashboard</h3>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" onclick="logoutAdmin()"><i data-lucide="log-out" style="width:16px;height:16px"></i> Çıxış</button>
+      <button class="btn btn-danger btn-sm" onclick="closeAdmin()"><i data-lucide="x" style="width:16px;height:16px"></i> Bağla</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:6px;padding:12px 24px;border-bottom:1px solid #f5f5f5;flex-wrap:wrap;flex-shrink:0">
+    <button class="admin-tab active" data-tab="stats" onclick="switchAdminTab('stats')"><i data-lucide="bar-chart-3" style="width:16px;height:16px"></i> Statistika</button>
+    <button class="admin-tab" data-tab="inventory" onclick="switchAdminTab('inventory')"><i data-lucide="package" style="width:16px;height:16px"></i> İnventar</button>
+    <button class="admin-tab" data-tab="sales" onclick="switchAdminTab('sales')"><i data-lucide="receipt" style="width:16px;height:16px"></i> Satışlar</button>
+    <button class="admin-tab" data-tab="settings" onclick="switchAdminTab('settings')"><i data-lucide="settings" style="width:16px;height:16px"></i> Ayarlar</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px 24px">
+    <div id="adminStats" class="admin-tab-content" style="display:block"></div>
+    <div id="adminInventory" class="admin-tab-content"></div>
+    <div id="adminSales" class="admin-tab-content"></div>
+    <div id="adminSettings" class="admin-tab-content"></div>
+  </div>
+</div>
+
+<!-- ===== ORDER CONFIRM MODAL ===== -->
+<div class="modal-overlay" id="orderConfirmModal">
+  <div class="modal-box" style="max-width:420px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="width:56px;height:56px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <i data-lucide="check-circle" style="width:28px;height:28px;color:#2e7d32"></i>
+      </div>
+      <h3 class="font-display" style="font-size:20px;color:var(--plum)">Satış kimi qeyd et?</h3>
+      <p style="font-size:14px;color:#666;margin-top:8px">Bu sifarişi bazaya əlavə edib stoku azaldaq?</p>
+    </div>
+    <div id="orderConfirmSummary" style="background:#f9f9f9;border-radius:12px;padding:16px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeOrderConfirm(false)">Xeyr</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeOrderConfirm(true)">Bəli, qeyd et</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUICK VIEW MODAL ===== -->
+<div class="modal-overlay" id="quickViewModal" onclick="if(event.target===this)closeQuickView()">
+  <div class="modal-box" style="max-width:480px;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 class="font-display" style="font-size:18px;color:var(--plum);line-height:1.3" id="qvTitle">Məhsul</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeQuickView()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div style="height:260px;background:#fafafa;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:16px" id="qvImgWrap"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:12px;color:#999;background:#f5f5f5;padding:2px 8px;border-radius:4px" id="qvCategory"></span>
+      <span style="font-size:12px;color:#888" id="qvSku"></span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <span class="font-display" style="font-size:24px;font-weight:700;color:var(--plum)" id="qvPrice"></span>
+      <div id="qvStock"></div>
+    </div>
+    <div id="qvAction"></div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container no-print" id="toastContainer"></div>
+
+<!-- ===== HIDDEN FILE INPUTS ===== -->
+<input type="file" id="csvFileInput" class="file-input-hidden" accept=".csv" onchange="handleCSVImport(event)">
+<input type="file" id="imageFileInput" class="file-input-hidden" accept="image/*" onchange="handleImageUpload(event)">
+
+<script>
+'use strict';
+// =============================================
+// SUPABASE INIT
+// =============================================
+const CFG = window.ALIEL_CONFIG || {};
+const sb = (CFG.url && CFG.key)
+  ? supabase.createClient(CFG.url, CFG.key)
+  : null;
+
+// =============================================
+// STATE (no localStorage for app data)
+// =============================================
+let products = [];      // { id, category, name, sku, price, stock, image }  — cost NEVER exposed to customer
+let sales = [];         // admin only
+let settingsMap = {};   // { wa_phone, anti_gravity }
+let cart = [];          // { id, name, sku, price, qty }  — session-only
+let adminSession = null;
+let pendingOrder = null;
+let antiGravityActive = false;
+let animFrameId = null;
+let particles = [];
+
+const DEFAULT_WA = '994603140201';
+const CATEGORIES_AZ = ['hamısı','sırğa','qolbaq','boyunbağı','dəst'];
+let activeCategory = 'hamısı';
+
+// =============================================
+// XSS ESCAPE
+// =============================================
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// =============================================
+// TOAST
+// =============================================
+function toast(msg, type = 'success', dur = 3500) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
+  el.innerHTML = '<i data-lucide="' + icon + '" style="width:18px;height:18px;flex-shrink:0"></i><span>' + esc(msg) + '</span>';
+  container.appendChild(el);
+  lucide.createIcons({ nodes: [el] });
+  setTimeout(() => {
+    el.style.animation = 'slideOut .3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, dur);
+}
+
+// =============================================
+// DATA LOADING
+// =============================================
+async function loadProducts() {
+  if (!sb) return;
+  // Anon can only SELECT id,category,name,sku,price,stock,image — no cost
+  const { data, error } = await sb
+    .from('products')
+    .select('id,category,name,sku,price,stock,image')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  products = data || [];
+}
+
+async function loadProductsAdmin() {
+  if (!sb || !adminSession) return;
+  // Admin sees all columns including cost
+  const { data, error } = await sb
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  products = data || [];
+}
+
+async function loadSales() {
+  if (!sb || !adminSession) return;
+  const { data, error } = await sb
+    .from('sales')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  sales = (data || []).map(s => ({
+    id: s.id,
+    date: s.created_at,
+    items: Array.isArray(s.items) ? s.items : (typeof s.items === 'string' ? JSON.parse(s.items) : []),
+    totalRevenue: Number(s.total_revenue) || 0,
+    totalCost: Number(s.total_cost) || 0,
+    profit: Number(s.profit) || 0
+  }));
+}
+
+async function loadSettings() {
+  if (!sb) return;
+  const { data, error } = await sb.from('settings').select('key,value');
+  if (!error && data) {
+    settingsMap = {};
+    data.forEach(r => { settingsMap[r.key] = r.value; });
+    if (settingsMap.anti_gravity === 'true' || settingsMap.anti_gravity === true) {
+      antiGravityActive = true;
+    } else {
+      antiGravityActive = false;
+    }
+  }
+}
+
+async function saveSetting(key, value) {
+  if (!sb) return;
+  const strVal = String(value);
+  const { error } = await sb.from('settings').upsert({ key, value: strVal }, { onConflict: 'key' });
+  if (error) throw error;
+  settingsMap[key] = strVal;
+}
+
+async function reloadAll() {
+  if (adminSession) {
+    await Promise.all([loadProductsAdmin(), loadSales(), loadSettings()]);
+  } else {
+    await Promise.all([loadProducts(), loadSettings()]);
+  }
+  renderCategoryTabs();
+  renderCatalog();
+  lucide.createIcons();
+}
+
+// =============================================
+// CATEGORY TABS
+// =============================================
+function renderCategoryTabs() {
+  const cats = ['hamısı', ...new Set(products.map(p => p.category).filter(Boolean))];
+  const el = document.getElementById('catTabs');
+  el.innerHTML = cats.map(c =>
+    '<button class="cat-tab' + (c === activeCategory ? ' active' : '') + '" onclick="setCategory(' + JSON.stringify(c) + ')">' + esc(c) + '</button>'
+  ).join('');
+}
+
+function setCategory(c) {
+  activeCategory = c;
+  renderCategoryTabs();
+  renderCatalog();
+}
+
+// =============================================
+// CATALOG RENDER
+// =============================================
+function renderCatalog() {
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+  let filtered = products.filter(p => {
+    if (activeCategory !== 'hamısı' && p.category !== activeCategory) return false;
+    if (search && !p.name.toLowerCase().includes(search) && !(p.sku || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const grid = document.getElementById('productGrid');
+  const empty = document.getElementById('emptyState');
+  const container = document.getElementById('catalogContainer');
+
+  stopAntiGravity();
+
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  if (antiGravityActive) {
+    grid.style.display = 'none';
+    let agEl = document.getElementById('agContainer');
+    if (!agEl) {
+      agEl = document.createElement('div');
+      agEl.id = 'agContainer';
+      agEl.className = 'ag-container';
+      container.appendChild(agEl);
+    }
+    agEl.style.display = 'block';
+    agEl.innerHTML = filtered.map(p => productCardHTML(p)).join('');
+    lucide.createIcons({ nodes: [agEl] });
+    initAntiGravity();
+  } else {
+    const agEl = document.getElementById('agContainer');
+    if (agEl) agEl.style.display = 'none';
+    grid.style.display = 'grid';
+    grid.innerHTML = filtered.map(p => productCardHTML(p)).join('');
+    lucide.createIcons({ nodes: [grid] });
+  }
+}
+
+function productCardHTML(p) {
+  const inStock = p.stock > 0;
+  const img = p.image
+    ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=&quot;font-size:48px;color:var(--sakura)&quot;>💍</div>\'">'
+    : '<div style="font-size:48px;color:var(--sakura)">💍</div>';
+
+  return '<div class="product-card">' +
+    '<div class="img-wrap" onclick="openQuickView(' + p.id + ')" style="cursor:pointer">' + img + '</div>' +
+    '<div style="padding:14px">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">' +
+        '<p style="font-size:13px;font-weight:600;color:#333;line-height:1.4;flex:1">' + esc(p.name) + '</p>' +
+        '<span class="stock-badge ' + (inStock ? 'inStock' : 'outOfStock') + '">' + (inStock ? '✓ Var' : '✗ Yox') + '</span>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">' +
+        '<span class="font-display" style="font-size:16px;font-weight:700;color:var(--plum)">' + p.price.toFixed(2) + ' AZN</span>' +
+        (inStock
+          ? '<button class="btn btn-primary btn-sm add-to-cart-btn" onclick="addToCart(' + p.id + ')" style="padding:5px 14px">' +
+              '<i data-lucide="shopping-bag" style="width:13px;height:13px"></i> Əlavə et' +
+            '</button>'
+          : '<span style="font-size:12px;color:#aaa">Tükənib</span>') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// =============================================
+// QUICK VIEW
+// =============================================
+function openQuickView(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('qvTitle').textContent = p.name;
+  document.getElementById('qvCategory').textContent = p.category || '';
+  document.getElementById('qvSku').textContent = p.sku ? 'SKU: ' + p.sku : '';
+  document.getElementById('qvPrice').textContent = p.price.toFixed(2) + ' AZN';
+  document.getElementById('qvStock').innerHTML = p.stock > 0
+    ? '<span class="stock-badge inStock">✓ Stokda var (' + p.stock + ')</span>'
+    : '<span class="stock-badge outOfStock">✗ Tükənib</span>';
+  const wrap = document.getElementById('qvImgWrap');
+  wrap.innerHTML = p.image
+    ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '" style="width:100%;height:100%;object-fit:contain;padding:16px" onerror="this.parentElement.innerHTML=\'<div style=&quot;font-size:64px&quot;>💍</div>\'">'
+    : '<div style="font-size:64px">💍</div>';
+  document.getElementById('qvAction').innerHTML = p.stock > 0
+    ? '<button class="btn btn-primary" style="width:100%;padding:12px" onclick="addToCart(' + p.id + ');closeQuickView()">' +
+        '<i data-lucide="shopping-bag" style="width:18px;height:18px"></i> Səbətə əlavə et' +
+      '</button>'
+    : '<button class="btn btn-ghost" style="width:100%;padding:12px" disabled>Stokda yoxdur</button>';
+  document.getElementById('quickViewModal').classList.add('active');
+  lucide.createIcons({ nodes: [document.getElementById('quickViewModal')] });
+}
+
+function closeQuickView() {
+  document.getElementById('quickViewModal').classList.remove('active');
+}
+
+// =============================================
+// CART
+// =============================================
+function addToCart(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  if (p.stock < 1) { toast('Bu məhsul stokda yoxdur', 'error'); return; }
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    if (existing.qty >= p.stock) { toast('Maksimum stok həddinə çatdınız', 'error'); return; }
+    existing.qty++;
+  } else {
+    cart.push({ id: p.id, name: p.name, sku: p.sku, price: p.price, qty: 1 });
+  }
+  renderCart();
+  toast(esc(p.name) + ' səbətə əlavə edildi');
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  const p = products.find(x => x.id === id);
+  const maxStock = p ? p.stock : 999;
+  item.qty = Math.max(1, Math.min(maxStock, item.qty + delta));
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  renderCart();
+}
+
+function toggleCart() {
+  const sidebar = document.getElementById('cartSidebar');
+  const overlay = document.getElementById('cartOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
+  if (sidebar.classList.contains('open')) lucide.createIcons({ nodes: [sidebar] });
+}
+
+function renderCart() {
+  const itemsEl = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  const countEl = document.getElementById('cartCount');
+  const itemCountEl = document.getElementById('cartItemCount');
+  const adminBtn = document.getElementById('adminSaleBtn');
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const qtyTotal = cart.reduce((s, i) => s + i.qty, 0);
+
+  countEl.textContent = qtyTotal;
+  itemCountEl.textContent = qtyTotal + ' məhsul';
+  totalEl.textContent = total.toFixed(2) + ' AZN';
+
+  if (adminBtn) adminBtn.style.display = adminSession ? 'flex' : 'none';
+
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#ccc">' +
+      '<i data-lucide="shopping-bag" style="width:48px;height:48px;margin:0 auto 12px;display:block"></i>' +
+      '<p style="font-size:14px">Səbət boşdur</p></div>';
+    lucide.createIcons({ nodes: [itemsEl] });
+    return;
+  }
+
+  itemsEl.innerHTML = cart.map(item => {
+    const p = products.find(x => x.id === item.id);
+    const img = p && p.image
+      ? '<img src="' + esc(p.image) + '" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fafafa;padding:4px">'
+      : '<div style="width:56px;height:56px;background:#fafafa;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px">💍</div>';
+    return '<div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5">' +
+      img +
+      '<div style="flex:1;min-width:0">' +
+        '<p style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(item.name) + '</p>' +
+        '<p style="font-size:12px;color:#999">' + item.price.toFixed(2) + ' AZN</p>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="changeQty(' + item.id + ',-1)" style="padding:2px 8px;font-size:16px">−</button>' +
+          '<span style="font-size:14px;font-weight:600;min-width:20px;text-align:center">' + item.qty + '</span>' +
+          '<button class="btn btn-ghost btn-sm" onclick="changeQty(' + item.id + ',1)" style="padding:2px 8px;font-size:16px">+</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0">' +
+        '<p style="font-size:14px;font-weight:700;color:var(--plum)">' + (item.price * item.qty).toFixed(2) + ' AZN</p>' +
+        '<button onclick="removeFromCart(' + item.id + ')" class="btn btn-ghost btn-sm" style="color:#dc3545;margin-top:4px"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  lucide.createIcons({ nodes: [itemsEl] });
+}
+
+function updateAdminUI() {
+  const adminBtn = document.getElementById('adminSaleBtn');
+  if (adminBtn) adminBtn.style.display = adminSession ? 'flex' : 'none';
+}
+
+// =============================================
+// ORDER TEXT & ORDERING
+// =============================================
+function getWaPhone() {
+  return (settingsMap.wa_phone || DEFAULT_WA).replace(/\D/g, '');
+}
+
+function generateOrderText() {
+  if (cart.length === 0) return '';
+  let msg = '🛍️ Aliel Gift — Yeni Sifariş\n\n📦 Sifariş Məhsulları:\n';
+  let total = 0;
+  cart.forEach((item, i) => {
+    const sub = item.price * item.qty;
+    total += sub;
+    msg += (i + 1) + '. ' + item.name + '\n';
+    msg += '   • SKU: ' + (item.sku || 'N/A') + '\n';
+    msg += '   • Miqdar: ' + item.qty + ' ədəd × ' + item.price.toFixed(2) + ' AZN\n\n';
+  });
+  msg += '------------------------------\n';
+  msg += '💰 Cəmi: ' + total.toFixed(2) + ' AZN';
+  return msg;
+}
+
+function buildPendingOrder() {
+  return {
+    items: cart.map(i => ({ ...i })),
+    total: cart.reduce((s, i) => s + i.price * i.qty, 0)
+  };
+}
+
+function orderViaInstagram() {
+  if (cart.length === 0) { toast('Səbət boşdur', 'error'); return; }
+  const msg = generateOrderText();
+  pendingOrder = buildPendingOrder();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).catch(() => {});
+  }
+  toast('Sifariş mətni kopyalandı! Instagram Direct-ə yapışdırın.', 'info', 5000);
+  window.open('https://www.instagram.com/alielgift/', '_blank');
+  if (adminSession) setTimeout(() => showOrderConfirm(), 1500);
+}
+
+function orderViaWhatsApp() {
+  if (cart.length === 0) { toast('Səbət boşdur', 'error'); return; }
+  const msg = generateOrderText();
+  pendingOrder = buildPendingOrder();
+  const phone = getWaPhone();
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
+  if (adminSession) setTimeout(() => showOrderConfirm(), 1500);
+}
+
+function recordSaleFromCart() {
+  if (!adminSession) { toast('Əvvəlcə admin kimi daxil olun', 'error'); return; }
+  if (cart.length === 0) { toast('Səbət boşdur', 'error'); return; }
+  pendingOrder = buildPendingOrder();
+  showOrderConfirm();
+}
+
+function showOrderConfirm() {
+  if (!pendingOrder) return;
+  const summary = document.getElementById('orderConfirmSummary');
+  summary.innerHTML =
+    '<div style="font-size:13px;color:#666;margin-bottom:8px"><strong>Sifariş xülasəsi:</strong></div>' +
+    pendingOrder.items.map(i =>
+      '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0">' +
+        '<span>' + esc(i.name) + ' ×' + i.qty + '</span>' +
+        '<span style="font-weight:600">' + (i.price * i.qty).toFixed(2) + ' AZN</span>' +
+      '</div>'
+    ).join('') +
+    '<div style="border-top:1px solid #ddd;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--plum)">' +
+      '<span>Cəmi:</span><span>' + pendingOrder.total.toFixed(2) + ' AZN</span>' +
+    '</div>';
+  document.getElementById('orderConfirmModal').classList.add('active');
+  lucide.createIcons({ nodes: [document.getElementById('orderConfirmModal')] });
+}
+
+async function closeOrderConfirm(doRecord) {
+  document.getElementById('orderConfirmModal').classList.remove('active');
+  if (!(doRecord && pendingOrder && adminSession)) { pendingOrder = null; return; }
+  const order = pendingOrder;
+  pendingOrder = null;
+  try {
+    // Decrement stock
+    for (const item of order.items) {
+      const p = products.find(x => x.id === item.id);
+      if (!p) continue;
+      const newStock = Math.max(0, p.stock - item.qty);
+      const { error } = await sb.from('products').update({ stock: newStock }).eq('id', p.id);
+      if (error) throw error;
+    }
+    // Record sale — items include cost from products array (admin has cost loaded)
+    const saleItems = order.items.map(i => {
+      const p = products.find(x => x.id === i.id);
+      return { productId: i.id, name: i.name, sku: i.sku, qty: i.qty, price: i.price, cost: p ? (p.cost || 0) : 0 };
+    });
+    const totalRevenue = order.total;
+    const totalCost = saleItems.reduce((s, i) => s + i.cost * i.qty, 0);
+    const profit = totalRevenue - totalCost;
+    const { error: sErr } = await sb.from('sales').insert({
+      items: saleItems,
+      total_revenue: totalRevenue,
+      total_cost: totalCost,
+      profit: profit
+    });
+    if (sErr) throw sErr;
+    toast('Satış qeydə alındı! Mənfəət: ' + profit.toFixed(2) + ' AZN', 'success');
+    cart = [];
+    renderCart();
+    const sidebar = document.getElementById('cartSidebar');
+    if (sidebar.classList.contains('open')) toggleCart();
+    await reloadAll();
+  } catch (err) {
+    toast('Qeyd alınmadı: ' + (err.message || String(err)), 'error');
+  }
+}
+
+// =============================================
+// ADMIN AUTH
+// =============================================
+let _adminTimer = null;
+let adminPanelOpen = false;
+
+// Double-click logo or type "admin"
+document.getElementById('logoWrap').addEventListener('dblclick', () => showAdminLogin());
+
+document.addEventListener('keydown', function(e) {
+  if (adminPanelOpen) {
+    resetAdminTimer();
+    if (e.key === 'Escape') closeAdmin();
+    return;
+  }
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (!window._adminKeySeq) window._adminKeySeq = [];
+  window._adminKeySeq.push(e.key.toLowerCase());
+  const target = ['a', 'd', 'm', 'i', 'n'];
+  if (window._adminKeySeq.length > target.length) window._adminKeySeq.shift();
+  if (window._adminKeySeq.join('') === target.join('')) {
+    window._adminKeySeq = [];
+    showAdminLogin();
+  }
+});
+
+function showAdminLogin() {
+  if (!sb) { toast('config.js faylını doldurun', 'error'); return; }
+  if (adminSession) { openAdmin(); return; }
+  document.getElementById('adminLoginModal').classList.add('active');
+  lucide.createIcons({ nodes: [document.getElementById('adminLoginModal')] });
+  setTimeout(() => document.getElementById('adminEmailInput').focus(), 100);
+}
+
+function closeAdminLogin() {
+  document.getElementById('adminLoginModal').classList.remove('active');
+  document.getElementById('adminPassInput').value = '';
+}
+
+async function loginAdmin() {
+  const email = document.getElementById('adminEmailInput').value.trim();
+  const pass = document.getElementById('adminPassInput').value;
+  if (!email || !pass) { toast('Email və şifrəni daxil edin', 'error'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Yüklənir...';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) { toast('Giriş uğursuz oldu: email və ya şifrə yanlışdır', 'error'); return; }
+    adminSession = data.session;
+    document.getElementById('adminPassInput').value = '';
+    closeAdminLogin();
+    updateAdminUI();
+    await reloadAll();
+    openAdmin();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Daxil ol';
+  }
+}
+
+async function logoutAdmin() {
+  try { await sb.auth.signOut(); } catch (e) {}
+  adminSession = null;
+  sales = [];
+  closeAdmin();
+  updateAdminUI();
+  await reloadAll();
+  toast('Çıxış edildi', 'info');
+}
+
+function resetAdminTimer() {
+  if (_adminTimer) clearTimeout(_adminTimer);
+  _adminTimer = setTimeout(() => {
+    if (adminPanelOpen) { toast('Təhlükəsizlik üçün çıxış edildi', 'info'); logoutAdmin(); }
+  }, 300000); // 5 min
+}
+
+function openAdmin() {
+  adminPanelOpen = true;
+  document.getElementById('adminOverlay').classList.add('active');
+  document.getElementById('adminPanel').classList.add('active');
+  resetAdminTimer();
+  switchAdminTab('stats');
+}
+
+function closeAdmin() {
+  adminPanelOpen = false;
+  document.getElementById('adminOverlay').classList.remove('active');
+  document.getElementById('adminPanel').classList.remove('active');
+  if (_adminTimer) { clearTimeout(_adminTimer); _adminTimer = null; }
+}
+
+function switchAdminTab(tab) {
+  if (adminPanelOpen) resetAdminTimer();
+  document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  const tabEl = document.querySelector('.admin-tab[data-tab="' + tab + '"]');
+  if (tabEl) tabEl.classList.add('active');
+  const contentEl = document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (contentEl) contentEl.style.display = 'block';
+  if (tab === 'stats') renderAdminStats();
+  if (tab === 'inventory') renderAdminInventory();
+  if (tab === 'sales') renderAdminSales();
+  if (tab === 'settings') renderAdminSettings();
+  lucide.createIcons({ nodes: [document.getElementById('adminPanel')] });
+}
+
+// =============================================
+// ADMIN — STATS
+// =============================================
+function renderAdminStats() {
+  const el = document.getElementById('adminStats');
+  const totalRev = sales.reduce((s, x) => s + x.totalRevenue, 0);
+  const totalCost = sales.reduce((s, x) => s + x.totalCost, 0);
+  const profit = totalRev - totalCost;
+  const totalStock = products.reduce((s, x) => s + x.stock, 0);
+  const totalSold = sales.reduce((s, x) => s + x.items.reduce((a, i) => a + i.qty, 0), 0);
+
+  el.innerHTML =
+    '<div style="margin-bottom:20px"><h3 class="font-display" style="font-size:22px;color:var(--plum)">📊 Maliyyə Statistika</h3></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px">' +
+      statCard('Ümumi Gəlir', totalRev.toFixed(2) + ' AZN', 'trending-up', '#2e7d32', '#e8f5e9') +
+      statCard('Ümumi Xərc', totalCost.toFixed(2) + ' AZN', 'trending-down', '#c62828', '#fce4ec') +
+      statCard('Xalis Mənfəət', profit.toFixed(2) + ' AZN', 'dollar-sign', profit >= 0 ? '#2e7d32' : '#c62828', '#fff8e1') +
+      statCard('Satılan Ədəd', totalSold + ' ədəd', 'package', 'var(--plum)', '#fce8ea') +
+      statCard('Ümumi Stok', totalStock + ' ədəd', 'boxes', '#1565c0', '#e3f2fd') +
+      statCard('Məhsul Sayı', String(products.length), 'gem', 'var(--gold)', '#fff8e1') +
+    '</div>' +
+    '<div style="background:#f9f9f9;border-radius:12px;padding:20px">' +
+      '<h4 class="font-display" style="font-size:16px;color:var(--plum);margin-bottom:12px">Son Satışlar</h4>' +
+      (sales.length === 0
+        ? '<p style="color:#999;text-align:center;padding:20px">Hələ satış yoxdur</p>'
+        : sales.slice(-5).reverse().map(s =>
+          '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px;gap:8px">' +
+            '<span style="flex-shrink:0">' + formatDate(s.date) + '</span>' +
+            '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.items.map(i => esc(i.name.slice(0, 20))).join(', ') + '</span>' +
+            '<span style="font-weight:600;flex-shrink:0">' + s.totalRevenue.toFixed(2) + ' AZN</span>' +
+          '</div>'
+        ).join('')) +
+    '</div>';
+}
+
+function statCard(label, value, icon, color, bg) {
+  return '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)">' +
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<div style="width:40px;height:40px;background:' + bg + ';border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+        '<i data-lucide="' + icon + '" style="width:20px;height:20px;color:' + color + '"></i>' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:12px;color:#999">' + label + '</div>' +
+        '<div class="font-display" style="font-size:20px;font-weight:700;color:' + color + '">' + esc(value) + '</div>' +
+      '</div>' +
+    '</div></div>';
+}
+
+// =============================================
+// ADMIN — INVENTORY
+// =============================================
+function renderAdminInventory() {
+  const el = document.getElementById('adminInventory');
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">' +
+      '<h3 class="font-display" style="font-size:22px;color:var(--plum)">📦 İnventar İdarəetmə</h3>' +
+      '<div style="display:flex;gap:8px">' +
+        '<button class="btn btn-primary btn-sm" onclick="showProductForm(null)">' +
+          '<i data-lucide="plus" style="width:14px;height:14px"></i> Yeni Məhsul' +
+        '</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'csvFileInput\').click()">' +
+          '<i data-lucide="file-spreadsheet" style="width:14px;height:14px"></i> CSV' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="table-wrap"><table>' +
+    '<thead><tr><th>#</th><th>SKU</th><th>Ad</th><th>Kateqoriya</th><th>Maya</th><th>Satış</th><th>Stok</th><th>Şəkil</th><th>Əməliyyat</th></tr></thead>' +
+    '<tbody>' +
+    products.map((p, i) =>
+      '<tr>' +
+        '<td>' + (i + 1) + '</td>' +
+        '<td style="font-weight:500">' + esc(p.sku) + '</td>' +
+        '<td>' + esc(p.name) + '</td>' +
+        '<td>' + esc(p.category) + '</td>' +
+        '<td>' + ((p.cost != null) ? Number(p.cost).toFixed(2) + ' AZN' : '—') + '</td>' +
+        '<td style="font-weight:600;color:var(--plum)">' + Number(p.price).toFixed(2) + ' AZN</td>' +
+        '<td>' + (p.stock > 0 ? '<span style="color:#2e7d32;font-weight:600">' + p.stock + '</span>' : '<span style="color:#c62828">0</span>') + '</td>' +
+        '<td>' + (p.image ? '<span style="color:#2e7d32">✔</span>' : '<span style="color:#aaa">—</span>') + '</td>' +
+        '<td><div style="display:flex;gap:4px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="showProductForm(' + p.id + ')" title="Redaktə"><i data-lucide="pencil" style="width:14px;height:14px"></i></button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="triggerImageUpload(' + p.id + ')" title="Şəkil"><i data-lucide="image" style="width:14px;height:14px"></i></button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="deleteProduct(' + p.id + ')" title="Sil" style="color:#dc3545"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>' +
+        '</div></td>' +
+      '</tr>'
+    ).join('') +
+    '</tbody></table></div>';
+  window._uploadTargetId = null;
+}
+
+function showProductForm(id) {
+  closeProductForm();
+  const p = id != null ? products.find(x => x.id === id) : null;
+  const isEdit = !!p;
+  const m = document.createElement('div');
+  m.className = 'modal-overlay active';
+  m.id = 'productFormModal';
+  m.onclick = function(e) { if (e.target === m) closeProductForm(); };
+  m.innerHTML =
+    '<div class="modal-box" style="max-width:500px">' +
+      '<h3 class="font-display" style="font-size:20px;color:var(--plum);margin-bottom:16px">' + (isEdit ? 'Məhsulu Redaktə Et' : 'Yeni Məhsul') + '</h3>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+        '<div style="grid-column:1/-1"><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Məhsul Adı *</label>' +
+          '<input class="form-input" id="pfName" value="' + (p ? esc(p.name) : '') + '" placeholder="Məhsulun adı"></div>' +
+        '<div><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">SKU *</label>' +
+          '<input class="form-input" id="pfSku" value="' + (p ? esc(p.sku) : '') + '" placeholder="Unikal kod"></div>' +
+        '<div><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Kateqoriya</label>' +
+          '<select class="form-select" id="pfCategory">' +
+            ['sırğa','qolbaq','boyunbağı','dəst'].map(c =>
+              '<option value="' + c + '"' + (p && p.category === c ? ' selected' : '') + '>' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>'
+            ).join('') +
+          '</select></div>' +
+        '<div><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Maya Dəyəri (AZN)</label>' +
+          '<input class="form-input" id="pfCost" type="number" step="0.01" min="0" value="' + (p && p.cost != null ? p.cost : '') + '" placeholder="0.00"></div>' +
+        '<div><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Satış Qiyməti (AZN) *</label>' +
+          '<input class="form-input" id="pfPrice" type="number" step="0.01" min="0" value="' + (p ? p.price : '') + '" placeholder="0.00"></div>' +
+        '<div><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Stok Sayı</label>' +
+          '<input class="form-input" id="pfStock" type="number" min="0" value="' + (p ? p.stock : '0') + '" placeholder="0"></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:16px">' +
+        '<button class="btn btn-ghost" style="flex:1" onclick="closeProductForm()">Ləğv et</button>' +
+        '<button class="btn btn-primary" style="flex:1" onclick="saveProduct(' + (p ? p.id : 'null') + ')">' + (isEdit ? 'Yadda saxla' : 'Əlavə et') + '</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function closeProductForm() {
+  const m = document.getElementById('productFormModal');
+  if (m) m.remove();
+}
+
+async function saveProduct(id) {
+  const name = document.getElementById('pfName').value.trim();
+  const sku = document.getElementById('pfSku').value.trim();
+  const category = document.getElementById('pfCategory').value;
+  const cost = parseFloat(document.getElementById('pfCost').value) || 0;
+  const price = parseFloat(document.getElementById('pfPrice').value);
+  const stock = parseInt(document.getElementById('pfStock').value) || 0;
+  if (!name || !sku) { toast('Ad və SKU tələb olunur', 'error'); return; }
+  if (isNaN(price) || price < 0) { toast('Düzgün qiymət daxil edin', 'error'); return; }
+  const row = { name, sku, category, cost, price, stock };
+  const isEdit = id != null && id !== 'null';
+  const { error } = isEdit
+    ? await sb.from('products').update(row).eq('id', id)
+    : await sb.from('products').insert(row);
+  if (error) { toast('Xəta: ' + error.message, 'error'); return; }
+  closeProductForm();
+  await reloadAll();
+  renderAdminInventory();
+  toast('Məhsul ' + (isEdit ? 'yeniləndi' : 'əlavə edildi'));
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Bu məhsulu silmək istədiyinizə əminsiniz?')) return;
+  const { error } = await sb.from('products').delete().eq('id', id);
+  if (error) { toast('Xəta: ' + error.message, 'error'); return; }
+  await reloadAll();
+  renderAdminInventory();
+  toast('Məhsul silindi');
+}
+
+// Image upload
+function triggerImageUpload(id) {
+  window._uploadTargetId = id;
+  document.getElementById('imageFileInput').click();
+}
+
+function compressImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      const k = Math.min(1, maxDim / Math.max(w, h));
+      w = Math.round(w * k); h = Math.round(h * k);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Şəkil işlənmədi')), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Şəkil oxunmadı')); };
+    img.src = url;
+  });
+}
+
+async function uploadBlob(blob, prefix) {
+  const path = prefix + '-' + Date.now() + '.jpg';
+  const { error } = await sb.storage.from('products').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+  if (error) throw error;
+  return sb.storage.from('products').getPublicUrl(path).data.publicUrl;
+}
+
+async function handleImageUpload(e) {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const id = window._uploadTargetId;
+  if (!id) return;
+  try {
+    toast('Şəkil yüklənir...', 'info');
+    const blob = await compressImage(file, 1000, 0.82);
+    const url = await uploadBlob(blob, 'p' + id);
+    const { error } = await sb.from('products').update({ image: url }).eq('id', id);
+    if (error) throw error;
+    await reloadAll();
+    renderAdminInventory();
+    toast('Şəkil yükləndi');
+  } catch (err) {
+    toast('Şəkil yüklənmədi: ' + (err.message || String(err)), 'error');
+  }
+}
+
+// =============================================
+// ADMIN — SALES
+// =============================================
+function renderAdminSales() {
+  const el = document.getElementById('adminSales');
+  if (sales.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:40px"><i data-lucide="receipt" style="width:48px;height:48px;color:#ddd;margin:0 auto 12px;display:block"></i><p style="color:#999">Hələ satış yoxdur</p></div>';
+    lucide.createIcons({ nodes: [el] });
+    return;
+  }
+  const totalRev = sales.reduce((s, x) => s + x.totalRevenue, 0);
+  const totalProfit = sales.reduce((s, x) => s + x.profit, 0);
+  el.innerHTML =
+    '<div style="margin-bottom:16px"><h3 class="font-display" style="font-size:22px;color:var(--plum)">🧾 Satış Dəftəri</h3></div>' +
+    '<div class="table-wrap"><table>' +
+    '<thead><tr><th>Tarix</th><th>Saat</th><th>Məhsullar</th><th>Gəlir</th><th>Xərc</th><th>Mənfəət</th></tr></thead>' +
+    '<tbody>' +
+    sales.slice().reverse().map(s =>
+      '<tr>' +
+        '<td>' + formatDate(s.date) + '</td>' +
+        '<td>' + formatTime(s.date) + '</td>' +
+        '<td>' + s.items.map(i => esc(i.name.length > 25 ? i.name.slice(0, 25) + '…' : i.name) + ' ×' + i.qty).join('<br>') + '</td>' +
+        '<td style="font-weight:600;color:#2e7d32">' + s.totalRevenue.toFixed(2) + ' AZN</td>' +
+        '<td style="color:#c62828">' + s.totalCost.toFixed(2) + ' AZN</td>' +
+        '<td style="font-weight:600;color:' + (s.profit >= 0 ? 'var(--plum)' : '#c62828') + '">' + s.profit.toFixed(2) + ' AZN</td>' +
+      '</tr>'
+    ).join('') +
+    '</tbody></table></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:12px 16px;background:#f9f9f9;border-radius:12px;margin-top:12px;font-weight:600;font-size:14px">' +
+      '<span>Cəmi:</span>' +
+      '<span>' + totalRev.toFixed(2) + ' AZN gəlir / ' + totalProfit.toFixed(2) + ' AZN mənfəət</span>' +
+    '</div>';
+}
+
+// =============================================
+// ADMIN — SETTINGS
+// =============================================
+function renderAdminSettings() {
+  const el = document.getElementById('adminSettings');
+  el.innerHTML =
+    '<div style="margin-bottom:20px"><h3 class="font-display" style="font-size:22px;color:var(--plum)">⚙️ Ayarlar</h3></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">' +
+
+    settingCard('💬 WhatsApp Nömrəsi', 'Sifarişlər üçün WhatsApp nömrəsi (rəqəmlər)',
+      '<div style="display:flex;gap:8px">' +
+        '<input type="text" id="waPhoneInput" class="form-input" placeholder="994XXXXXXXXX" value="' + esc(settingsMap.wa_phone || DEFAULT_WA) + '" style="flex:1">' +
+        '<button class="btn btn-primary btn-sm" onclick="saveWaPhone()">Yadda saxla</button>' +
+      '</div>') +
+
+    settingCard('📄 CSV İmport', 'Toplu məhsul əlavə etmə (ad, kateqoriya, sku, maya, qiymət, stok)',
+      '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'csvFileInput\').click()">' +
+        '<i data-lucide="file-spreadsheet" style="width:14px;height:14px"></i> CSV Yüklə' +
+      '</button>') +
+
+    settingCard('📤 Eksport (Ehtiyat Nüsxə)', 'Bütün məlumatları JSON formatında yükləyin',
+      '<button class="btn btn-primary btn-sm" onclick="exportData()">' +
+        '<i data-lucide="download" style="width:14px;height:14px"></i> Yüklə (JSON)' +
+      '</button>') +
+
+    settingCard('🚀 Anti-Gravity Modu', antiGravityActive ? 'Aktiv — məhsullar süzür' : 'Deaktiv — standart görünüş',
+      '<button class="btn ' + (antiGravityActive ? 'btn-danger' : 'btn-gold') + ' btn-sm" onclick="toggleAntiGravity()">' +
+        '<i data-lucide="refresh-cw" style="width:14px;height:14px"></i> ' + (antiGravityActive ? 'Deaktiv et' : 'Aktiv et') +
+      '</button>') +
+
+    settingCard('🔑 Şifrə Dəyişdir', 'Admin hesabının giriş şifrəsini dəyişdirin',
+      '<div style="display:flex;gap:8px">' +
+        '<input type="password" id="newPasswordInput" class="form-input" placeholder="Yeni şifrə (min 8 simvol)" autocomplete="new-password" style="flex:1">' +
+        '<button class="btn btn-primary btn-sm" onclick="changePassword()">Dəyiş</button>' +
+      '</div>') +
+
+    '</div>';
+  lucide.createIcons({ nodes: [el] });
+}
+
+function settingCard(title, desc, inner) {
+  return '<div style="background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)">' +
+    '<h4 style="font-size:14px;font-weight:600;margin-bottom:6px;color:#333">' + title + '</h4>' +
+    '<p style="font-size:12px;color:#999;margin-bottom:12px">' + desc + '</p>' +
+    inner + '</div>';
+}
+
+async function saveWaPhone() {
+  const phone = (document.getElementById('waPhoneInput').value || '').replace(/\D/g, '');
+  try { await saveSetting('wa_phone', phone); toast('WhatsApp nömrəsi saxlanıldı'); }
+  catch (err) { toast('Xəta: ' + (err.message || String(err)), 'error'); }
+}
+
+async function changePassword() {
+  const np = (document.getElementById('newPasswordInput').value || '').trim();
+  if (!np || np.length < 8) { toast('Şifrə ən az 8 simvol olmalıdır', 'error'); return; }
+  const { error } = await sb.auth.updateUser({ password: np });
+  if (error) { toast('Xəta: ' + error.message, 'error'); return; }
+  toast('Şifrə dəyişdirildi');
+  document.getElementById('newPasswordInput').value = '';
+}
+
+// =============================================
+// ANTI-GRAVITY
+// =============================================
+async function toggleAntiGravity() {
+  const next = !antiGravityActive;
+  try { await saveSetting('anti_gravity', String(next)); }
+  catch (err) { toast('Xəta: ' + (err.message || String(err)), 'error'); return; }
+  antiGravityActive = next;
+  renderCatalog();
+  if (document.getElementById('adminSettings').style.display === 'block') renderAdminSettings();
+  lucide.createIcons({ nodes: [document.getElementById('adminPanel')] });
+}
+
+function initAntiGravity() {
+  stopAntiGravity();
+  const container = document.getElementById('agContainer');
+  if (!container) return;
+  const cards = container.querySelectorAll('.product-card');
+  const w = container.clientWidth || window.innerWidth - 40;
+  const h = Math.max(window.innerHeight - 200, 600);
+  container.style.height = h + 'px';
+  particles = [];
+  cards.forEach(card => {
+    const cw = Math.min(260, w * 0.35);
+    const ch = 340;
+    const x = Math.random() * Math.max(0, w - cw);
+    const y = Math.random() * Math.max(0, h - ch);
+    card.style.width = cw + 'px';
+    card.style.left = '0';
+    card.style.top = '0';
+    particles.push({
+      el: card, x, y,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3 - 0.5,
+      w: cw, h: ch,
+      rot: (Math.random() - 0.5) * 6,
+      vr: (Math.random() - 0.5) * 0.3
+    });
+  });
+  animateAG(w, h);
+}
+
+function animateAG(w, h) {
+  if (!antiGravityActive || particles.length === 0) return;
+  particles.forEach(p => {
+    p.vy -= 0.04;
+    p.vx *= 0.999;
+    p.vy *= 0.999;
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) { p.x = 0; p.vx *= -0.8; }
+    if (p.x > w - p.w) { p.x = w - p.w; p.vx *= -0.8; }
+    if (p.y < 0) { p.y = 0; p.vy *= -0.8; }
+    if (p.y > h - p.h) { p.y = h - p.h; p.vy *= -0.8; }
+    p.rot += p.vr;
+    p.el.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px) rotate(' + p.rot + 'deg)';
+  });
+  animFrameId = requestAnimationFrame(() => animateAG(w, h));
+}
+
+function stopAntiGravity() {
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+  particles = [];
+}
+
+// =============================================
+// EXPORT / CSV IMPORT
+// =============================================
+function exportData() {
+  const data = { exportedAt: new Date().toISOString(), products, sales };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aliel_gift_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Məlumatlar yükləndi');
+}
+
+function handleCSVImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      const lines = ev.target.result.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { toast('CSV boşdur', 'error'); return; }
+      const h = lines[0].split(',').map(x => x.trim().toLowerCase().replace(/"/g, ''));
+      const idx = {};
+      idx.name = h.indexOf('name') >= 0 ? h.indexOf('name') : h.indexOf('ad');
+      idx.category = h.indexOf('category') >= 0 ? h.indexOf('category') : h.indexOf('kateqoriya');
+      idx.sku = h.indexOf('sku');
+      idx.cost = h.indexOf('cost') >= 0 ? h.indexOf('cost') : h.indexOf('maya');
+      idx.price = h.indexOf('price') >= 0 ? h.indexOf('price') : (h.indexOf('qiymət') >= 0 ? h.indexOf('qiymət') : h.indexOf('satış'));
+      idx.stock = h.indexOf('stock') >= 0 ? h.indexOf('stock') : h.indexOf('stok');
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        const name = idx.name >= 0 ? vals[idx.name] : '';
+        if (!name) continue;
+        rows.push({
+          name,
+          category: idx.category >= 0 ? (vals[idx.category] || 'sırğa') : 'sırğa',
+          sku: idx.sku >= 0 ? (vals[idx.sku] || ('CSV-' + i)) : ('CSV-' + i),
+          cost: idx.cost >= 0 ? (parseFloat(vals[idx.cost]) || 0) : 0,
+          price: idx.price >= 0 ? (parseFloat(vals[idx.price]) || 0) : 0,
+          stock: idx.stock >= 0 ? (parseInt(vals[idx.stock]) || 0) : 0
+        });
+      }
+      if (!rows.length) { toast('CSV-də məhsul tapılmadı', 'error'); return; }
+      const { error } = await sb.from('products').insert(rows);
+      if (error) throw error;
+      await reloadAll();
+      renderAdminInventory();
+      toast(rows.length + ' məhsul əlavə edildi');
+    } catch (err) {
+      toast('CSV xətası: ' + (err.message || String(err)), 'error');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
+}
+
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (antiGravityActive) {
+      const c = document.getElementById('agContainer');
+      if (c) {
+        const w = c.clientWidth || window.innerWidth - 40;
+        const h = parseInt(c.style.height) || window.innerHeight - 200;
+        particles.forEach(p => {
+          if (p.x > w - p.w) p.x = Math.max(0, w - p.w);
+          if (p.y > h - p.h) p.y = Math.max(0, h - p.h);
+        });
+      }
+    }
+  }, 200);
+});
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+  renderCart();
+  lucide.createIcons();
+
+  const grid = document.getElementById('productGrid');
+  if (!sb) {
+    grid.style.display = 'block';
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#999;padding:40px 10px">Sayt bazaya qoşulmayıb. config.js faylını doldurun.</p>';
+    return;
+  }
+
+  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#999;padding:40px 10px"><i data-lucide="loader" style="width:24px;height:24px;margin-right:8px;display:inline-block"></i>Yüklənir...</p>';
+  lucide.createIcons({ nodes: [grid] });
+
+  try {
+    // Check for existing session
+    const { data: { session } } = await sb.auth.getSession();
+    adminSession = session || null;
+
+    // Listen for auth changes
+    sb.auth.onAuthStateChange((_event, sess) => {
+      adminSession = sess || null;
+      updateAdminUI();
+      renderCart();
+    });
+
+    updateAdminUI();
+    await reloadAll();
+  } catch (err) {
+    console.error('Init error:', err);
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#c62828;padding:40px 10px">Məhsullar yüklənmədi. Səhifəni yeniləyin.</p>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
